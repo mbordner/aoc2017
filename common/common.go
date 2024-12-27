@@ -1,6 +1,11 @@
 package common
 
-import "fmt"
+import (
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"strconv"
+)
 
 func PopulateStringCombinationsAtLength(results map[string]bool, pickChars string, prefix string, length int) {
 	if length == 0 {
@@ -90,6 +95,27 @@ type Pos struct {
 	X int
 }
 
+func (p Pos) Add(o Pos) Pos {
+	return Pos{Y: p.Y + o.Y, X: p.X + o.X}
+}
+
+func (p Pos) Scale(s int) Pos {
+	return Pos{Y: p.Y * s, X: p.X * s}
+}
+
+type PosDelta Pos
+
+var (
+	DN = Pos{Y: -1, X: 0}
+	DU = DN
+	DE = Pos{Y: 0, X: 1}
+	DR = DE
+	DS = Pos{Y: 1, X: 0}
+	DD = DS
+	DW = Pos{Y: 0, X: -1}
+	DL = DW
+)
+
 func (p Pos) String() string {
 	return fmt.Sprintf("{%d,%d}", p.X, p.Y)
 }
@@ -141,7 +167,7 @@ func ConvertGrid(lines []string) Grid {
 	return grid
 }
 
-type Queue[T comparable] []T
+type Queue[T any] []T
 
 func (q *Queue[T]) Enqueue(s T) {
 	*q = append(*q, s)
@@ -191,4 +217,22 @@ func Dedupe[T comparable](values []T) []T {
 		vs = append(vs, v)
 	}
 	return vs
+}
+
+func ByteCharToInt(char byte) int {
+	return int(char - '0')
+}
+
+func StrToA(str string) int {
+	return int(StrToA64(str))
+}
+
+func StrToA64(str string) int64 {
+	val, _ := strconv.ParseInt(str, 10, 64)
+	return val
+}
+
+func HashString(data []byte) string {
+	hash := md5.Sum(data)
+	return hex.EncodeToString(hash[:])
 }
