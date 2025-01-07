@@ -5,7 +5,10 @@ import (
 	"github.com/mbordner/aoc2017/common/file"
 )
 
-type Garbage []byte
+type Garbage struct {
+	count int
+	data  []byte
+}
 
 type Group struct {
 	children []interface{}
@@ -27,6 +30,19 @@ func (g *Group) depthScore(depth int) int {
 		}
 	}
 	return score
+}
+
+func (g *Group) GarbageLen() int {
+	sum := 0
+	for _, child := range g.children {
+		if group, ok := child.(*Group); ok {
+			sum += group.GarbageLen()
+		} else {
+			garbage := child.(Garbage)
+			sum += garbage.count
+		}
+	}
+	return sum
 }
 
 func NewGroup() *Group {
@@ -61,10 +77,11 @@ func (gs *GroupStack) Len() int {
 
 func main() {
 	data, _ := file.GetContent("../data.txt")
-	fmt.Println(getStreamGroupScore(data))
+	root := getStreamRootGroup(data)
+	fmt.Println(root.GarbageLen())
 }
 
-func getStreamGroupScore(data []byte) int {
+func getStreamRootGroup(data []byte) *Group {
 	gs := make(GroupStack, 0, 10)
 
 	ptr := 0
@@ -82,22 +99,29 @@ func getStreamGroupScore(data []byte) int {
 			ptr++
 		} else if data[ptr] == '<' {
 			garbageStart := ptr
+			gc := 0
+			ptr++
 			for ptr < len(data) {
 				if data[ptr] == '!' {
 					ptr += 2
 				} else if data[ptr] == '>' {
-					garbage := make(Garbage, ptr+1-garbageStart)
-					copy(garbage, data[garbageStart:ptr+1])
+					garbage := Garbage{count: gc, data: make([]byte, ptr+1-garbageStart)}
+					copy(garbage.data, data[garbageStart:ptr+1])
 					gs.Peek().Add(garbage)
 					ptr++
 					break
 				} else {
 					ptr++
+					gc++
 				}
 			}
 		}
 	}
 
-	root := gs.Pop()
+	return gs.Pop()
+}
+
+func getStreamGroupScore(data []byte) int {
+	root := getStreamRootGroup(data)
 	return root.Score()
 }
