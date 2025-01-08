@@ -13,6 +13,17 @@ type Cell[T IntNumber] struct {
 	S T
 }
 
+func Abs[T IntNumber](x T) T {
+	if x >= T(0) {
+		return x
+	}
+	return -x
+}
+
+func (c Cell[T]) Distance(o Cell[T]) T {
+	return (Abs(c.Q-o.Q) + Abs(c.R-o.R) + Abs(c.S-o.S)) / T(2)
+}
+
 type CellLinker[T IntNumber] map[Cell[T]]Cell[T]
 
 func (cl CellLinker[T]) Link(c, o Cell[T]) {
