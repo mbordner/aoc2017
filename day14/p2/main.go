@@ -122,6 +122,31 @@ func getBits(hash string) []bool {
 	return bits
 }
 
+type Used struct {
+	y int
+	x int
+}
+
+type Regions map[Used]int
+
+func (r Regions) Has(u Used) int {
+	if v, e := r[u]; e {
+		return v
+	}
+	return -1
+}
+
+func expandRegion(allUsed Regions, regions Regions, used Used, region int) {
+	if _, isUsed := allUsed[used]; isUsed {
+		if _, isExpanded := regions[used]; !isExpanded {
+			regions[used] = region
+			for _, d := range []Used{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
+				expandRegion(allUsed, regions, Used{y: used.y + d.y, x: used.x + d.x}, region)
+			}
+		}
+	}
+}
+
 func main() {
 	hashInput := `ugkiagan`
 
@@ -138,17 +163,30 @@ func main() {
 		}
 	}
 
-	used := 0
+	allUsed := make(Regions)
+	regions := make(Regions)
+	region := 0 // 0 is global for all used
 
 	for y := 0; y < len(grid); y++ {
 		kh := NewKnotHash(fmt.Sprintf("%s-%d", hashInput, y))
 		for x, b := range getBits(kh.String()) {
 			if b {
 				grid[y][x] = '#'
-				used++
+				allUsed[Used{y, x}] = region
 			}
 		}
 	}
 
-	fmt.Println(used)
+	for u, v := range allUsed {
+		if v >= 0 {
+			if _, e := regions[u]; !e { // if we have not recorded this region
+				region++
+				expandRegion(allUsed, regions, u, region)
+			}
+		}
+	}
+
+	fmt.Printf("number of used sections: %d\n", len(allUsed))
+	fmt.Printf("number of regions: %d\n", region)
+
 }
