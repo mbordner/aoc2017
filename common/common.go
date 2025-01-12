@@ -186,6 +186,37 @@ func (q *Queue[T]) Dequeue() *T {
 	return nil
 }
 
+type Stack[T any] []T
+
+func (s *Stack[T]) Len() int {
+	return len(*s)
+}
+
+func (s *Stack[T]) Push(v T) {
+	*s = append(*s, v)
+}
+
+func (s *Stack[T]) Peek() *T {
+	if !s.Empty() {
+		v := (*s)[len(*s)-1]
+		return &v
+	}
+	return nil
+}
+
+func (s *Stack[T]) Empty() bool {
+	return len(*s) == 0
+}
+
+func (s *Stack[T]) Pop() *T {
+	if !s.Empty() {
+		v := (*s)[len(*s)-1]
+		*s = (*s)[:len(*s)-1]
+		return &v
+	}
+	return nil
+}
+
 type PosContainer map[Pos]bool
 
 func (v PosContainer) Has(p Pos) bool {
