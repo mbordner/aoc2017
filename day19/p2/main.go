@@ -96,8 +96,11 @@ func main() {
 		letters = append(letters, grid[p.Y][p.X])
 	}
 
+	steps := 1
+
 	np, nd := grid.Next(p, d)
 	for np != nil {
+		steps++
 		p = *np
 		d = *nd
 		if !grid.GridChar(p) {
@@ -107,6 +110,7 @@ func main() {
 	}
 
 	fmt.Println(string(letters))
+	fmt.Println(steps)
 }
 
 func getData(filename string) Grid {
